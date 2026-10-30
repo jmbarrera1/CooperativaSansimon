@@ -327,14 +327,13 @@
           const inputMonto = document.getElementById('cdat-monto');
           let monto = parseFloat(inputMonto.value) || 0;
           
-          // Extraer los límites desde los atributos del input HTML
           const minPermitido = parseInt(inputMonto.getAttribute('min')) || 500000;
           const maxPermitido = parseInt(inputMonto.getAttribute('max')) || 999999999999;
 
-          // Validación 1: Limitar el máximo. Si supera el tope, lo devolvemos al límite permitido.
+          // Validación 1
           if (monto > maxPermitido) {
             monto = maxPermitido;
-            inputMonto.value = maxPermitido; // Actualiza el input visualmente
+            inputMonto.value = maxPermitido;
           }
           
           const selectPlazo = document.getElementById('cdat-plazo');
@@ -347,26 +346,26 @@
             maximumFractionDigits: 0
           });
 
-          // Validación 2: Si el monto no alcanza el mínimo, no calculamos, pero dejamos que siga escribiendo.
+          // Valiación 2
           if (monto < minPermitido) {
             document.getElementById('cdat-rendimientos').textContent = "$0";
             document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
             document.getElementById('cdat-total-res').textContent = "$0";
-            return; // Detiene la ejecución aquí
+            return; 
           }
 
-          // Fórmula financiera para tasa Efectiva Anual a un plazo en días
+          // Fórmula
           const r = tasaEA / 100;
           const rendimiento = monto * (Math.pow(1 + r, plazoDias / 360) - 1);
           const totalRecibir = monto + rendimiento;
           
-          // Actualizar la interfaz
+          // Output
           document.getElementById('cdat-rendimientos').textContent = formateadorPesos.format(rendimiento);
           document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
           document.getElementById('cdat-total-res').textContent = formateadorPesos.format(totalRecibir);
         }
 
-        // Ejecutar ambos cálculos automáticamente cuando la página termine de cargar
+        // Inicio del flujo de forma automática
         document.addEventListener('DOMContentLoaded', () => {
           calcularCuota();
           calcularCDAT();
