@@ -111,7 +111,7 @@
           <!-- Monto a Invertir -->
           <div>
             <label for="cdat-monto" class="block text-sm font-semibold text-gray-700 mb-2">Monto a invertir ($)</label>
-            <input type="number" id="cdat-monto" oninput="calcularCDAT()" value="5000000" min="500000" step="100000" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brandBrown focus:border-transparent focus:outline-none transition text-gray-700">
+            <input type="number" id="cdat-monto" oninput="calcularCDAT()" value="5000000" min="500000" max="999999999999" step="100000" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brandBrown focus:border-transparent focus:outline-none transition text-gray-700">
           </div>
 
           <!-- Plazo en Días y Tasa -->
@@ -128,7 +128,7 @@
               <option value="270" data-tasa="12.7">270 días (12.7% E.A.)</option>
               <option value="300" data-tasa="12.7">300 días (12.7% E.A.)</option>
               <option value="330" data-tasa="12.7">330 días (12.7% E.A.)</option>
-              <option value="360" data-tasa="10.5" selected>360 días (12.7% E.A.)</option>
+              <option value="360" data-tasa="12.7" selected>360 días (12.7% E.A.)</option>
             </select>
           </div>
         </div>
@@ -321,17 +321,57 @@
           btn.classList.remove('bg-brandGreen', 'text-white', 'hover:bg-green-800');
         }
       }
-      // Función principal para calcular el CDAT     
-      // Actualizar la interfaz
-      document.getElementById('cdat-rendimientos').textContent = formateadorPesos.format(rendimiento);
-      document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
-      document.getElementById('cdat-total-res').textContent = formateadorPesos.format(totalRecibir);
+        // Script del funcionamiento del simulador CDAT
+        // Función principal para calcular el CDAT
+        function calcularCDAT() {
+          const inputMonto = document.getElementById('cdat-monto');
+          let monto = parseFloat(inputMonto.value) || 0;
+          
+          // Extraer los límites desde los atributos del input HTML
+          const minPermitido = parseInt(inputMonto.getAttribute('min')) || 500000;
+          const maxPermitido = parseInt(inputMonto.getAttribute('max')) || 999999999999;
 
-      // Ejecutar ambos cálculos automáticamente cuando la página termine de cargar
-      document.addEventListener('DOMContentLoaded', () => {
-        calcularCuota();
-        calcularCDAT();
-      });
+          // Validación 1: Limitar el máximo. Si supera el tope, lo devolvemos al límite permitido.
+          if (monto > maxPermitido) {
+            monto = maxPermitido;
+            inputMonto.value = maxPermitido; // Actualiza el input visualmente
+          }
+          
+          const selectPlazo = document.getElementById('cdat-plazo');
+          const plazoDias = parseInt(selectPlazo.value);
+          const tasaEA = parseFloat(selectPlazo.options[selectPlazo.selectedIndex].getAttribute('data-tasa'));
+          
+          const formateadorPesos = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 0
+          });
+
+          // Validación 2: Si el monto no alcanza el mínimo, no calculamos, pero dejamos que siga escribiendo.
+          if (monto < minPermitido) {
+            document.getElementById('cdat-rendimientos').textContent = "$0";
+            document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
+            document.getElementById('cdat-total-res').textContent = "$0";
+            return; // Detiene la ejecución aquí
+          }
+
+          // Fórmula financiera para tasa Efectiva Anual a un plazo en días
+          const r = tasaEA / 100;
+          const rendimiento = monto * (Math.pow(1 + r, plazoDias / 360) - 1);
+          const totalRecibir = monto + rendimiento;
+          
+          // Actualizar la interfaz
+          document.getElementById('cdat-rendimientos').textContent = formateadorPesos.format(rendimiento);
+          document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
+          document.getElementById('cdat-total-res').textContent = formateadorPesos.format(totalRecibir);
+        }
+
+        // Ejecutar ambos cálculos automáticamente cuando la página termine de cargar
+        document.addEventListener('DOMContentLoaded', () => {
+          calcularCuota();
+          calcularCDAT();
+        });
+        
     </script> 
     
     <!--Módulo de funcinoamiento Tawk.to -->  
