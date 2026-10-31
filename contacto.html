@@ -153,21 +153,23 @@
             <label for="nombre" class="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
             <input type="text" id="nombre" name="nombre" placeholder="Ej. Juan Manuel Santos" 
               class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandGreen focus:border-transparent transition" 
-              pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+" 
-              title="Solo se permiten letras y espacios."
-              minlength="3" maxlength="60"
+              pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{6,60}" 
+              title="Solo se permiten letras y espacios, debe contener entre 6 y 60 caracteres"
+              minlength="6" maxlength="60"
               oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
               required>
-          </div>
+          </div> 
+
           <!-- Cédula / Identificación -->
           <div>
             <label for="cedula" class="block text-sm font-semibold text-gray-700 mb-1">Número de Identificación</label>
             <input type="text" id="cedula" name="cedula" placeholder="Ej. 1110760822" 
               class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandGreen focus:border-transparent transition"
-              pattern="[0-9]+" 
-              title="Solo se permiten números."
-              minlength="5" maxlength="15"
-              oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+              pattern="[0-9]{3,10}" 
+              title="Solo se permiten números, debe contener entre 3 y 10 dígitos numéricos"
+              minlength="3" maxlength="10"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+              required>
           </div>
           <!-- Teléfono -->
           <div>
@@ -210,8 +212,7 @@
           <label for="mensaje" class="block text-sm font-semibold text-gray-700 mb-1">Mensaje</label>
           <textarea id="mensaje" name="mensaje" rows="4" placeholder="Escribe tu consulta de forma detallada en este espacio..." 
             class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brandGreen focus:border-transparent transition resize-none" 
-            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
-            title="Solo se permiten letras y espacios."
+            title="Solo se permiten letras, espacios, puntos y comas."
             minlength="10" maxlength="1000"
             oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s,.]/g, '')"
             required></textarea>
@@ -482,8 +483,17 @@
       // Script de funcionamiento para el formulario con validación
       function validarFormulario() {
         const form = document.getElementById('formContacto');
+        const mensaje = document.getElementById('mensaje');
+        
+        // Validación textArea
+        if (mensaje.value.trim().length < 10) {
+          mensaje.setCustomValidity('El mensaje es muy corto. Debe contener al menos 10 caracteres.');
+        } else {
+          mensaje.setCustomValidity('');
+        }
+
         if (!form.checkValidity()) {
-          form.reportValidity(); // Esto mostrará los mensajes nativos del navegador si falta algo o si el formato no coincide
+          form.reportValidity(); 
           return false;
         }
         return true;
