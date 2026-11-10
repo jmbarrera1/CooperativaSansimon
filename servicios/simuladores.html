@@ -135,7 +135,7 @@
 
         <!-- Panel de Resultados -->
         <div class="md:w-1/2 mt-8 md:mt-0 flex flex-col justify-center items-center bg-brandBg rounded-xl p-6 border border-gray-100 shadow-inner">
-          <p class="text-gray-500 font-semibold mb-2">Rendimientos Proyectados</p>
+          <p class="text-gray-500 font-semibold mb-2">Rendimientos Brutos Proyectados</p>
           <h3 class="text-4xl font-extrabold text-brandBrown mb-6" id="cdat-rendimientos">$0</h3>
           
           <div class="w-full space-y-3 text-sm text-gray-600">
@@ -144,20 +144,23 @@
               <span id="cdat-tasa-res" class="font-bold text-gray-800">10.5% E.A.</span>
             </div>
             <div class="flex justify-between border-b border-gray-200 pb-2">
-              <span>Total a recibir (Capital + Interés):</span>
+              <span>Retención en la fuente (4%):</span>
+              <span id="cdat-retencion-res" class="font-bold text-red-600">-$0</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+              <span>Rendimiento neto:</span>
+              <span id="cdat-rendimiento-neto-res" class="font-bold text-gray-800">$0</span>
+            </div>
+            <div class="flex justify-between border-b border-gray-200 pb-2">
+              <span>Total a recibir (Capital + Rendimiento Neto):</span>
               <span id="cdat-total-res" class="font-bold text-brandGreen text-base">$0</span>
             </div>
           </div>
           
           <p class="text-xs text-gray-400 mt-6 text-center leading-tight">
-            * Los valores presentados son una proyección antes de deducciones de ley (como Retención en la Fuente). Las tasas E.A. (Efectiva Anual) están sujetas a políticas vigentes.
+            * Los valores presentados incluyen el descuento de ley por Retención en la Fuente (4%) sobre los rendimientos. Las tasas E.A. (Efectiva Anual) están sujetas a políticas vigentes.
           </p>
         </div>
-      </div>
-
-      <div  class="flex space-x-2 space-y-6 w-full sm:w-auto justify-end"     >
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdf4RMGmZjvE4zRiZy5c8bPbKQ_G5ijD7-v3dHf5VVi38Vwzg/viewform" target="_blank" rel="noopener noreferrer" class="bg-brandBrown text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-brandYellow transition text-brandBrown text-center">Solicite aquí</a>
-      </div>
 
 
     </section>
@@ -321,55 +324,61 @@
           btn.classList.remove('bg-brandGreen', 'text-white', 'hover:bg-green-800');
         }
       }
-        // Script del funcionamiento del simulador CDAT
-        // Función principal para calcular el CDAT
-        function calcularCDAT() {
-          const inputMonto = document.getElementById('cdat-monto');
-          let monto = parseFloat(inputMonto.value) || 0;
-          
-          const minPermitido = parseInt(inputMonto.getAttribute('min')) || 500000;
-          const maxPermitido = parseInt(inputMonto.getAttribute('max')) || 999999999999;
+      // Script del funcionamiento del simulador CDAT
+      // Función principal para calcular el CDAT
+      function calcularCDAT() {
+        const inputMonto = document.getElementById('cdat-monto');
+        let monto = parseFloat(inputMonto.value) || 0;
+        
+        const minPermitido = parseInt(inputMonto.getAttribute('min')) || 500000;
+        const maxPermitido = parseInt(inputMonto.getAttribute('max')) || 999999999999;
 
-          // Validación 1
-          if (monto > maxPermitido) {
-            monto = maxPermitido;
-            inputMonto.value = maxPermitido;
-          }
-          
-          const selectPlazo = document.getElementById('cdat-plazo');
-          const plazoDias = parseInt(selectPlazo.value);
-          const tasaEA = parseFloat(selectPlazo.options[selectPlazo.selectedIndex].getAttribute('data-tasa'));
-          
-          const formateadorPesos = new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            maximumFractionDigits: 0
-          });
+        // Validación 1
+        if (monto > maxPermitido) {
+          monto = maxPermitido;
+          inputMonto.value = maxPermitido;
+        }
+        
+        const selectPlazo = document.getElementById('cdat-plazo');
+        const plazoDias = parseInt(selectPlazo.value);
+        const tasaEA = parseFloat(selectPlazo.options[selectPlazo.selectedIndex].getAttribute('data-tasa'));
+        
+        const formateadorPesos = new Intl.NumberFormat('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          maximumFractionDigits: 0
+        });
 
-          // Valiación 2
-          if (monto < minPermitido) {
-            document.getElementById('cdat-rendimientos').textContent = "$0";
-            document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
-            document.getElementById('cdat-total-res').textContent = "$0";
-            return; 
-          }
-
-          // Fórmula
-          const r = tasaEA / 100;
-          const rendimiento = monto * (Math.pow(1 + r, plazoDias / 360) - 1);
-          const totalRecibir = monto + rendimiento;
-          
-          // Output
-          document.getElementById('cdat-rendimientos').textContent = formateadorPesos.format(rendimiento);
+        // Validación 2 (Actualizada con los nuevos campos)
+        if (monto < minPermitido) {
+          document.getElementById('cdat-rendimientos').textContent = "$0";
           document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
-          document.getElementById('cdat-total-res').textContent = formateadorPesos.format(totalRecibir);
+          document.getElementById('cdat-retencion-res').textContent = "-$0";
+          document.getElementById('cdat-rendimiento-neto-res').textContent = "$0";
+          document.getElementById('cdat-total-res').textContent = "$0";
+          return; 
         }
 
-        // Inicio del flujo de forma automática
-        document.addEventListener('DOMContentLoaded', () => {
-          calcularCuota();
-          calcularCDAT();
-        });
+        // Fórmula modificada para incluir Retención en la Fuente del 4%
+        const r = tasaEA / 100;
+        const rendimientoBruto = monto * (Math.pow(1 + r, plazoDias / 360) - 1);
+        const retencionFuente = rendimientoBruto * 0.04;
+        const rendimientoNeto = rendimientoBruto - retencionFuente;
+        const totalRecibir = monto + rendimientoNeto;
+        
+        // Output
+        document.getElementById('cdat-rendimientos').textContent = formateadorPesos.format(rendimientoBruto);
+        document.getElementById('cdat-tasa-res').textContent = tasaEA + '% E.A.';
+        document.getElementById('cdat-retencion-res').textContent = '-' + formateadorPesos.format(retencionFuente);
+        document.getElementById('cdat-rendimiento-neto-res').textContent = formateadorPesos.format(rendimientoNeto);
+        document.getElementById('cdat-total-res').textContent = formateadorPesos.format(totalRecibir);
+      }
+
+      // Inicio del flujo de forma automática
+      document.addEventListener('DOMContentLoaded', () => {
+        calcularCuota();
+        calcularCDAT();
+      });
         
     </script> 
     
